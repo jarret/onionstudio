@@ -136,7 +136,7 @@ class S3BucketDeploy(S3Interface):
 
 SOURCE_DIR = "htdocs/"
 S3_BUCKET = "onion.studio"
-CLOUDFRONT_DISTRIBUTION = "E306SI25S8U7B"
+CLOUDFRONT_DISTRIBUTION = "E1SR2TKM48WX7C"
 start_time = time.time()
 s3 = S3BucketDeploy(SOURCE_DIR, S3_BUCKET)
 s3.put_dir()
