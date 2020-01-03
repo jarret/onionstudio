@@ -7,10 +7,9 @@ from onionstudio.onion import Onion
 
 
 class Draw:
-    def __init__(self, rpc, dst_node, art_no, pixels):
+    def __init__(self, rpc, dst_node, pixels):
         self.rpc = rpc
         self.dst_node = dst_node
-        self.art_no = art_no
         self.pixels = pixels
 
     ###########################################################################
@@ -48,7 +47,7 @@ class Draw:
         if err:
             return None, err
         onion_creator = Onion(self.rpc, myid, self.dst_node, block_height,
-                              invoice, self.art_no, pixels)
+                              invoice, pixels)
         onion_result = onion_creator.fit_onion()
         if onion_result['status'] != "success":
             return None, onion_result['msg']

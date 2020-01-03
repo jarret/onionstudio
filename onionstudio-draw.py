@@ -3,9 +3,9 @@ import os
 import sys
 import argparse
 
-from bannerpunk.draw import Draw
-from bannerpunk.png import PngToPixels
-from bannerpunk.manual import ManualToPixels
+from onionstudio.draw import Draw
+from onionstudio.png import PngToPixels
+from onionstudio.manual import ManualToPixels
 
 from pyln.client import LightningRpc
 

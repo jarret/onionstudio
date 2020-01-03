@@ -19,7 +19,7 @@ INITIAL_HOP_GUESS = 4
 FIT_ONION_TRIES = 5
 
 class Onion:
-    def __init__(self, rpc, myid, dst_node, block_height, invoice, art_no,
+    def __init__(self, rpc, myid, dst_node, block_height, invoice,
                  available_pixels):
         """
         Finds a valid onion to route to the destination node that fits as many
@@ -32,7 +32,6 @@ class Onion:
         self.invoice = invoice
         self.payment_secret = self.invoice['payment_secret']
         self.payment_hash = self.invoice['payment_hash']
-        self.art_no = art_no
         self.available_pixels = available_pixels
 
     def print_dict(self, info):
@@ -144,7 +143,7 @@ class Onion:
                           delay, pixels):
         if pubkey == self.dst_node:
             p = Extension.encode_non_final(msatoshi, block_height + delay,
-                                           channel, self.art_no, pixels)
+                                           channel, pixels)
         else:
             p = TlvHopPayload.encode_non_final(msatoshi, block_height + delay,
                                                channel)
@@ -156,8 +155,7 @@ class Onion:
                       payment_secret, pixels):
         if pubkey == self.dst_node:
             p = Extension.encode_final(msatoshi, block_height + delay, channel,
-                                       payment_secret, msatoshi, self.art_no,
-                                       pixels)
+                                       payment_secret, msatoshi, pixels)
         else:
             p = TlvHopPayload.encode_final(msatoshi, block_height + delay,
                                            payment_secret=payment_secret,
