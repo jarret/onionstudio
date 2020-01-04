@@ -7,6 +7,12 @@ from onionstudio.manual import ManualToPixels
 from onionstudio.png import PngToPixels
 from onionstudio.draw import Draw
 
+# the "offical" onion studio node
+NODE = "02e389d861acd9d6f5700c99c6c33dd4460d6f1e2f6ba89d1f4f36be85fc60f8d7"
+
+PNG_PIXEL_SAFETY = 1000
+
+###############################################################################
 
 plugin = Plugin()
 
@@ -30,10 +36,10 @@ def draw_pixels(plugin, pixels):
        satoshi per pixel
 
         pixels - is a string that specifies the x,y cordinates and RGB colors
-            eg. 1_1_ffffff will set the pixel at coordinate at (1, 1) to
-                white #ffffff
-                1_1_00ff00_2_2_00ff00 will set the pixels at coordinates
-                (1, 1) and (2,2) to green #00ff00
+            eg. 1_1_fff will set the pixel at coordinate at (1, 1) to
+                white #fff
+                1_1_0f0_2_2_0f0 will set the pixels at coordinates
+                (1, 1) and (2,2) to green #0f0
     """
     pixels, err = parse_pixel_args(pixels)
     if err:
@@ -49,19 +55,20 @@ def draw_pixels(plugin, pixels):
 ###############################################################################
 
 def parse_png_args(x_offset_string, y_offset_string, png_filename):
+    png_filename = os.path.abspath(png_filename)
     try:
         x_offset = int(x_offset_string)
         y_offset = int(y_offset_string)
     except:
         return None, None, "could not parse args"
-    if not os.path.exists(png_filename):
-        return None, None, None, None, "no file at path: %s" % png_filename
+    if not os.path.isfile(png_filename):
+        return None, None, None, "no file at path: %s" % png_filename
     if not png_filename.endswith(".png"):
-        return None, None, None, None, "not a png file: %s" % png_filename
+        return None, None, None, "not a png file: %s" % png_filename
     return x_offset, y_offset, png_filename, None
 
 @plugin.method("os_draw_png")
-def draw_png(plugin, x_offset, y_offset, png_filename):
+def draw_png(plugin, x_offset, y_offset, png_filename, big=""):
     """ Draws a png image file to Onion Studio placed with the top corner at
         the given x and y offset. It will be drawn at a cost of 1 satoshi per
         pixel. The color space will be clamped to the 12-bit colorspace that
@@ -70,6 +77,8 @@ def draw_png(plugin, x_offset, y_offset, png_filename):
         x_offset = the x coordinate to place the image
         y_offset = the y coordinate to place the image
         png_filename = the path to a .png file to use as the source image
+        big = provide the string 'big' to opt in to allowing large amounts
+            of pixels to be bought with one invocation of this command
     """
     x_offset, y_offset, png_filename, err = parse_png_args(x_offset, y_offset,
                                                            png_filename)
@@ -78,7 +87,14 @@ def draw_png(plugin, x_offset, y_offset, png_filename):
 
     pp = PngToPixels(png_filename)
     pixels = list(pp.iter_at_offset(x_offset, y_offset))
-    node = plugin.get_option("bannerpunk_node")
+
+    if big != "big" and len(pixels) > PNG_PIXEL_SAFETY:
+        return ("*** This will draw %d pixels at a cost of %d satoshis, "
+                "which is a lot so we want to make sure you actually intend "
+                "to spend that amount. To proceed with this, please append the "
+                "word 'big' at the end of the command") % (len(pixels),
+                                                           len(pixels))
+    node = plugin.get_option("onion_studio_node")
     d = Draw(plugin.rpc, node, pixels)
     err = d.run()
     if err:
@@ -87,8 +103,6 @@ def draw_png(plugin, x_offset, y_offset, png_filename):
 
 ###############################################################################
 
-# the "offical" onion studio node
-NODE = "02e389d861acd9d6f5700c99c6c33dd4460d6f1e2f6ba89d1f4f36be85fc60f8d7"
 
 plugin.add_option("onion_studio_node", NODE,
                   "the node we are paying to draw to")

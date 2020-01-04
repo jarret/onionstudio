@@ -32,7 +32,7 @@ def png_func(s, rpc):
                 "try:\n"
                 "  $ sudo apt-get install libopenjp2-7 libtiff5\n"
                 "  $ sudo pip3 install pillow")
-    if not os.path.exists(s.png_file):
+    if not os.path.isfile(s.png_file):
         return "no such file? %s" % s.png_file
 
     pp = PngToPixels(s.png_file)
@@ -43,6 +43,7 @@ def png_func(s, rpc):
                 "to spend that amount. To proceed with this, please use the "
                 "--big cli option.") % (len(pixels), len(pixels))
 
+    #pixels = pixels[0 - (2 * len(pixels) // 3):] # hack to continue failed drawing
     d = Draw(rpc, NODE, pixels)
     return d.run()
 
