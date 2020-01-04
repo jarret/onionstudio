@@ -75,7 +75,7 @@ file LICENSE or http://www.opensource.org/licenses/mit-license.php -->
     Onion Studio is a demonstration of the new TLV format for Lightning Network Sphinx onion routing packets as specified in <a href="https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md">BOLT 4</a>. This format allows for custom application-specific extensions to be made to the protocol. Onion Studio takes inspiration from <a href="https://satoshis.place">Satoshis Place</a> but is a bit more arcane and 1337 with its use of edgy Lightning Network tech.
     </P>
     <P class="body">
-The C-Lightning node behind the Onion Studio site is enabled to receive TLV data in the form of pixel draw instructions. Likewise, the provided client will encode these pixel draw instructions to send to our node with the payment. On the server side, if correct encoding is found and if sufficient payment has been included as a hop forwarding fee (1 satoshi per pixel), it will draw the pixels on the site.
+The C-Lightning node behind the Onion Studio site is enabled to receive TLV data in the form of pixel draw instructions. Likewise, the provided client will encode these pixel draw instructions to send to our node with the payment. On the server side, if correct encoding is found and if sufficient payment has been included as a hop forwarding fee (1 satoshi per pixel), it will draw the pixels on the site and echo them out to connected clients in real-time via websocket.
     </P>
     <P class="body">
     For now, only C-Lightning allows custom TLV payloads to be provided via the <code>createonion</code> and <code>sendonion</code> interface. LND and other clients and wallets currently do not support this use yet.
