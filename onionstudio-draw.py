@@ -12,6 +12,8 @@ from pyln.client import LightningRpc
 
 NODE = "02e389d861acd9d6f5700c99c6c33dd4460d6f1e2f6ba89d1f4f36be85fc60f8d7"
 
+PNG_PIXEL_SAFETY = 1000
+
 ###############################################################################
 
 def manual_func(s, rpc):
@@ -35,6 +37,12 @@ def png_func(s, rpc):
 
     pp = PngToPixels(s.png_file)
     pixels = list(pp.iter_at_offset(s.x_offset, s.y_offset))
+    if not s.big and len(pixels) > PNG_PIXEL_SAFETY:
+        return ("*** This will draw %d pixels at a cost of %d satoshis, "
+                "which is a lot so we want to make sure you actually intend "
+                "to spend that amount. To proceed with this, please use the "
+                "--big cli option.") % (len(pixels), len(pixels))
+
     d = Draw(rpc, NODE, pixels)
     return d.run()
 
@@ -69,6 +77,8 @@ png.add_argument("x_offset", type=int,
 png.add_argument("y_offset", type=int,
                  help="the y coordinate to begin drawing at")
 png.add_argument("png_file", type=str, help="the path to the png file to use")
+png.add_argument("-b", "--big", action="store_true",
+                 help="acknowledge that this is a big spend and proceed anyway")
 png.set_defaults(func=png_func)
 
 settings = parser.parse_args()
