@@ -7,7 +7,6 @@ An application of TLV extension data in onion packets for drawing anonymous art 
 https://onion.studio
 
 
-
 # Drawing Pixels
 
 ## Dependencies
@@ -39,14 +38,16 @@ On the frontend of [Onion Studio](https://onion.studio), the drawable pixel grid
 
 The 'native' color depth of this art space is 12 bit colors which are specified by 3-character hex RGB strings. Eg.
 
-```
-000 = Black
-f00 = Red
-0f0 = Green
-00f = Green
-fff = White
-etc.
-```
+
+| 12-bit hex    | Color          |
+| ------------- |:--------------:|
+| 000           | Black          |
+| f00           | Red            |
+| 0f0           | Green          |
+| 00f           | Blue           |
+| fff           | White          |
+
+
 If you provide a .png file of a different color depth, the colors will be clamped to 12 bits of precision per pixel.
 
 If you provide a .png file with alpha channel transparency, the transparent pixels will be dropped from the purchase, allowing you to cleanly place irregularly-shaped images on top of others.
@@ -98,7 +99,7 @@ $ ./onionstudio-draw.py /path/to/lightining-dir/bitcoin/lightning-rpc png 300 40
 
 ## Drawing via Plugin
 
-For convenience, the same functionality is also bundled into a C-Lightning plugin. The [onionstudio-draw-plugin.py](onionstudio-draw-plugin.py) is the plugin executable to be copied to the `plugin/` directory of your C-Lightning node. The `bolt/` and `onionstudio` directories of this repo will need to be copied to the `plugin/` directory also.
+For convenience, the same functionality is also bundled into a C-Lightning plugin. The [onionstudio-draw-plugin.py](onionstudio-draw-plugin.py) is the plugin executable to be copied to the `plugin/` directory of your C-Lightning node. The `bolt/` and `onionstudio/` directories of this repo will need to be copied to the `plugin/` directory also.
 
 ```
 $ cp -r onionstudio-draw-plugin.py bolt onionstudio /path/to/lightning-dir/plugins/
