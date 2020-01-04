@@ -5,6 +5,8 @@ import pprint
 from onionstudio.invoice import Invoice
 from onionstudio.onion import Onion
 
+WAIT_FOR_PAYMENT_CHECKS = 20
+WAIT_FOR_PAYMENT_PERIOD = 2.0
 
 class Draw:
     def __init__(self, rpc, dst_node, pixels):
@@ -69,10 +71,10 @@ class Draw:
             if status == "complete":
                 break
             checks += 1
-            if checks == 10:
+            if checks == WAIT_FOR_PAYMENT_CHECKS:
                 return None, "payment didn't complete"
             print("sleeping waiting for payment to complete...")
-            time.sleep(2.0)
+            time.sleep(WAIT_FOR_PAYMENT_PERIOD)
         return onion_result['fitted_pixels'], None
 
     def _draw_loop(self, myid, block_height):
