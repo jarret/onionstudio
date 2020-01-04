@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<!-- Copyright (c) 2019 Jarret Dyrbye
+Distributed under the MIT software license, see the accompanying
+file LICENSE or http://www.opensource.org/licenses/mit-license.php -->
+<html>
+<head>
+<title>WTF is Onion Studio?</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="description" content="Art space pixels bought via onion routed TLV messages on the Lightning Network">
+<meta name="keywords" content="crypto,art,image,bitcoin,lightning-network,micropayment,onion">
+<link rel="canonical" href="https://onion.studio/wtf"/>
+
+<!-- Favicon Data -->
+<link rel="icon"
+      type="image/png"
+      href="/img/icon.png">
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "Organization",
+        "name": "onion.studio",
+        "url": "https://onion.studio",
+        "logo": "https://onion.studio/img/logo.png",
+        "sameAs": "http://www.twitter.com/sparkshot_io"
+    }
+</script>
+
+<!-- Open Graph -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="@sparkshot_io" />
+<meta name="twitter:title" content="WTF is Onion Studio?" />
+<meta name="twitter:description" content="Art space pixels bought via onion routed TLV messages on the Lightning Network" />
+<meta name="twitter:image" content="https://onion.studio/img/logo.png" />
+
+<meta property="og:title" content="WTF is Onion Studio?" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Onion Studio?" />
+<meta property="og:url" content="https://onion.studio/wtf" />
+<meta property="og:image" content="https://onion.studio/img/logo.png" />
+<meta property="og:image:width" content="430" />
+<meta property="og:image:height" content="195" />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:alt" content="Onion Studio" />
+<meta property="og:description" content="Art space pixels bought via onion routed TLV messages on the Lightning Network" />
+
+<!-- CSS -->
+<style>
+    P.body {
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 43em;
+        min-width: 15em;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+</style>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
+</head>
+
+<body style="background-color:#5fa8e7;">
+
+    <a href="https://onion.studio"><img src="img/title.png" alt="title"></a>
+    <br>
+
+    <center>
+    <h1>WTF is Onion Studio?</h1>
+    <P class="body">
+    It's really a lot to explain...  But if you are here, good job.
+    </P>
+    <P class="body">
+    Onion Studio is a demonstration of the new TLV format for Lightning Network Sphinx onion routing packets as specified in <a href="https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md">BOLT 4</a>. This format allows for custom application-specific extensions to be made to the protocol. Onion Studio takes inspiration from <a href="https://satoshis.place">Satoshis Place</a> but is a bit more arcane and 1337 with its use of edgy Lightning Network tech.
+    </P>
+    <P class="body">
+The C-Lightning node behind the Onion Studio site is enabled to receive TLV data in the form of pixel draw instructions. Likewise, the provided client will encode these pixel draw instructions to send to our node with the payment. On the server side, if correct encoding is found and if sufficient payment has been included as a hop forwarding fee (1 satoshi per pixel), it will draw the pixels on the site.
+    </P>
+    <P class="body">
+    For now, only C-Lightning allows custom TLV payloads to be provided via the <code>createonion</code> and <code>sendonion</code> interface. LND and other clients and wallets currently do not support this use yet.
+    </P>
+    <P class="body">
+    The only way to draw is to run the provided client code with your C-Lightning node. Both a plugin and non-plugin option are provided. Installing the plugin takes a bit of effort, but provides an easier interface. The non-plugin option will require you to specify the path to your JSON-RPC file as a CLI argument.
+    </P>
+    </center>
+</body>
+
+</html>
