@@ -15,10 +15,10 @@ class Pixel(object):
         assert y >= 0
         for c in rgb:
             assert c in string.hexdigits
-        print(rgb)
+        #print(rgb)
         if len(rgb) == 6:
             rgb = Pixel.clamp_rgb(rgb)
-        print(rgb)
+        #print(rgb)
         assert len(rgb) == 3
 
         self.x = x
@@ -33,7 +33,7 @@ class Pixel(object):
         return rgb_24[0] + rgb_24[2] + rgb_24[4]
 
     def from_bin(pixel_bin):
-        print("bin: %s" % pixel_bin.hex())
+        #print("bin: %s" % pixel_bin.hex())
         assert len(pixel_bin) == PIXEL_BYTE_SIZE
         val = int.from_bytes(pixel_bin, byteorder="big")
         x = val >> 22 & 0x03ff
