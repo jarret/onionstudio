@@ -9,7 +9,7 @@ https://onion.studio
 
 # Drawing Pixels
 
-## Dependencies
+### Dependencies
 This requires you be running [C-Lightning](https://github.com/ElementsProject/lightning) version `v0.8.0` or later. The provided client uses the `createonion` and `sendonion` RPC calls introduced in `v0.8.0`. At this time, I am aware of no other LN wallet or node implementation that supports building onion packets to include Onion Studio's custom TLV extensions.
 
 The provided client also uses the Python wrapper that is imported as `pyln.client` which is installed the PyPi package `pyln-client` (formerly `pylightning`).
@@ -24,7 +24,7 @@ $ sudo apt-get install libopenjp2-7 libtiff5
 $ sudo pip3 install pillow
 ```
 
-## Cloning this repo
+### Cloning this repo
 
 You will need the client scripts provided. You can get them by cloning this repository:
 ```
@@ -32,7 +32,7 @@ $ git clone https://github.com/jarret/onionstudio
 $ cd onionstudio
 ```
 
-## Pixel Coordinates and Colors
+### Pixel Coordinates and Colors
 
 On [the frontend of Onion Studio](https://onion.studio), the drawable pixel grid is 1024 pixels by 1024 pixels. The top left corner pixel is coordinate `(0, 0)`. The bottom right pixel is coordinate `(1023, 1023)`. When drawing from .png source files, the placement coordinate you will need to specify is where to align the top left corner of that image on this grid.
 
@@ -52,11 +52,11 @@ If you provide a .png file of a different color depth, the colors will be clampe
 
 If you provide a .png file with alpha channel transparency, the transparent pixels will be dropped from the purchase, allowing you to cleanly place irregularly-shaped images on top of others.
 
-## Pricing
+### Pricing
 
-Each pixel costs 1 satoshi to draw, which is inexpensive, unless you are drawing a large .png image, for which the costs can add up quickly. The scripts will require you to opt-in with the `--big` flag to draw more than 1000 pixels in one instruction. It is suggested that you test things out with small draws to validate your understanding before getting more ambitious.
+Each pixel costs 1 satoshi to draw, which is inexpensive, unless you are drawing a large .png image, for which the costs can add up quickly. The scripts will require you to opt-in with the `--big` flag to draw more than 1000 pixels in one instruction. It is suggested that you test things out with small draws to validate your setup and understanding before getting more ambitious.
 
-## Drawing via Standalone Client
+### Drawing via Standalone Client
 
 In this repository, the [onionstudio-draw.py](onionstudio-draw.py) executable will draw pixels via your provided input parameters. However, it will need to be pointed at the JSON-RPC file of your running C-Lightning node which is typically in your `lightning-dir`. You will also need to choose between `manual` and `png` mode for the style of drawing.
 
@@ -97,7 +97,7 @@ To draw a .png file of your creation with the top-left corner placed at coordina
 $ ./onionstudio-draw.py /path/to/lightining-dir/bitcoin/lightning-rpc png 300 400 /path/to/my/image.png
 ```
 
-## Drawing via Plugin
+### Drawing via Plugin
 
 For convenience, the same functionality is also bundled into a C-Lightning plugin. The [onionstudio-draw-plugin.py](onionstudio-draw-plugin.py) is the plugin executable to be copied to the `plugin/` directory of your C-Lightning node. The `bolt/` and `onionstudio/` directories of this repo will need to be copied to the `plugin/` directory also.
 
@@ -120,11 +120,11 @@ If you have any trouble loading the plugin, please ensure the standalone script 
 
 # Running My Own Onion Studio Server
 
-## Running the ZeroMQ plugin
+### Running the ZeroMQ plugin
 
 The provided [cl-zmq.py](depends/cl-zmq.py) plugin is a slightly modified version of [the one in the official community repo](https://github.com/lightningd/plugins/tree/master/zmq). It is needed to publish the `forward_event` notification and the `htlc_accepted` hook to a ZeroMQ endpoint where the Onion Studio Server can pick it up. This plugin will need to be loaded and the node will need to be started with launch args that are similar to: `--zmq-pub-forward-event=tcp://0.0.0.0:5556 --zmq-pub-htlc-accepted=tcp://0.0.0.0:5556` in order to configure the plugin to publish to that specific endpoint (`tcp://0.0.0.0:5556` in the example). The [example-subscriber.py](depends/example-subscriber.py) script might be useful for testing, observing, and logging these events as seen by the server.
 
-## Running the Server
+### Running the Server
 
 The [onionstudio.py](onionstudio.py) script is the websocket server and application logic. It will read events from the endpoint, accept valid payloads, update the stored image state and notify any connected websocket clients of the newly purchased pixels. This script has help output which describes the configuration options:
 ```
@@ -146,35 +146,39 @@ optional arguments:
                         directory to save the image state and logs
 ```
 
-## Running the frontend
+### Running the frontend
 
 The [frontend/](frontend/) directory has the html and javascript of the frontend web page. For running with your setup, it will need to be modified to connect to the right websocket host and port (ws://localhost:9000) for example.
 
-## Testing with Art.
+### Testing with Art.
 
 The server can be configured with the `MOCK_ENDPOINT` launch arg to accept payloads from that second endpoint. A [test script](test/mock-tlv-png.py) has been provided which can publish valid `htlc_accepted` and `forward_event` payloads with valid pixels to that endpoint based on an arbitrary .png. This may be useful for testing that everything works before relying on real LN payments to drive the app.
+
+### Using The Clients With A Different Server
+
+The provided clients have the "official" Onion Studio public key node id hardcoded. You will need to change this value to point at a different destination node.
 
 
 # Crash Course: How Do I Make My Own Extension TLV App?
 
 At this time (Jan. 2020) everything here is very bleeding-edge and raw. This application's implementation may help guide you on how to do it with C-Lightning, but there will likely be better ways in the future. Here is a quick tour of what is here:
 
-## Basic TLV Encoding
+### Basic TLV Encoding
 The code under [bolt/](bolt/) handles the encoding of TLVs and payloads according to the BOLT 1 and BOLT 4 specifications. In particular, [hop_payload.py](bolt/hop_payload.py) uses the rest of the utilities to encode and parse hop payloads for the onion packets that give normal TLV routing instructions as per BOLT 4.
 
-## Creating Extension TLVs
+### Creating Extension TLVs
 
 The source file [extension.py](onionstudio/extension.py) takes the normal TLV payload with routing instructions and appends the encoded extension TLVs. The extension TLVs are encoded using the `bolt/` library's TLV class, but with the type value set to an odd number greater than 65536 as is valid for extension TLVs per the BOLT 4 spec.
 
-## Creating Onion Packets
+### Creating Onion Packets
 
 C-Lightning provides the `createonion` command, however there are a few things to watch out for. First, the onion packets must be 1300 bytes large, all the payloads encoding size and hop distances vary in size. As a result, finding a payload set that fits in under the onion packet's hard limit takes some trial-and-error iteration,  The source file [onion.py](onionstudio/onion.py) goes through the iteration of building a right-sized onion by varying the number of encoded pixels.
 
-## Circular Routing
+### Circular Routing
 
 Onion Studio routes to pay the destination by routing in a circular path and paying the destination via the routing hop fee. That means that the BOLT11 invoice is created by your local node and paid by your same local node via the circular route (this is similar to how channel re-balances work). This avoids the problem of needing to coordinate with the destination node and/or doing some sort of "Key Send" operation to make a undirectional payment. Conceptually, this circular payment might be a bit to grok at first, but it is a powerful tool for app design that Onion Studio demonstrates.
 
-## Receiving Extension TLVs
+### Receiving Extension TLVs
 
 C-Lightning's plugin system allows an application to register for the `htlc_accepted` hook which allows you to examine the TLV payloads as they are being used to route. At this time, the application can parse the payload and examine the forwarding payment that will be made if this HTLC is fulfilled.
 

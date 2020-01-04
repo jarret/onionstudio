@@ -52,9 +52,6 @@ def png_func(s, rpc):
 parser = argparse.ArgumentParser(prog="onion-draw.py")
 parser.add_argument("lightning_rpc", type=str,
                     help="path to your c-lightning rpc file for sending calls")
-parser.add_argument("-n", "--node", type=str,
-                    help="destination node for pixel payload"
-                         "(default = the 'official' BannerPunk node")
 
 subparsers = parser.add_subparsers(title='subcommands',
                                    description='selects style of drawing',
