@@ -34,7 +34,7 @@ $ cd onionstudio
 
 ## Pixel Coordinates and Colors
 
-On the frontend of [Onion Studio](https://onion.studio), the drawable pixel grid is 1024 pixels by 1024 pixels. The top left corner pixel is coordinate `(0, 0)`. The bottom right pixel is coordinate `(1023, 1023)`. When drawing from .png source files, the placement coordinate you will need to specify is where to align the top left corner of that image on this grid.
+On [the frontend of Onion Studio](https://onion.studio), the drawable pixel grid is 1024 pixels by 1024 pixels. The top left corner pixel is coordinate `(0, 0)`. The bottom right pixel is coordinate `(1023, 1023)`. When drawing from .png source files, the placement coordinate you will need to specify is where to align the top left corner of that image on this grid.
 
 The 'native' color depth of this art space is 12 bit colors which are specified by 3-character hex RGB strings. Eg.
 
@@ -120,10 +120,44 @@ If you have any trouble loading the plugin, please ensure the standalone script 
 
 # Running My Own Onion Studio Server
 
+## Running the ZeroMQ plugin
+
+The provided [cl-zmq.py](depends/cl-zmq.py) plugin is a slightly modified version of [the one in the official community repo](https://github.com/lightningd/plugins/tree/master/zmq). It is needed to publish the `forward_event` notification and the `htlc_accepted` hook to a ZeroMQ endpoint where the Onion Studio Server can pick it up. This plugin will need to be loaded and the node will need to be started with launch args that are similar to: `--zmq-pub-forward-event=tcp://0.0.0.0:5556 --zmq-pub-htlc-accepted=tcp://0.0.0.0:5556` in order to configure the plugin to publish to that specific endpoint (`tcp://0.0.0.0:5556` in the example). The [example-subscriber.py](depends/example-subscriber.py) script might be useful for testing, observing, and logging these events as seen by the server.
+
+## Running the Server
+
+The [onionstudio.py](onionstudio.py) script is the websocket server and application logic. It will read events from the endpoint, accept valid payloads, update the stored image state and notify any connected websocket clients of the newly purchased pixels. This script has help output which describes the configuration options:
+```
+$ ./onionstudio.py -h
+usage: onionstudio.py [-h] [-e ENDPOINT] [-m MOCK_ENDPOINT]
+                      [-w WEBSOCKET_PORT] [-a ART_DB_DIR]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -e ENDPOINT, --endpoint ENDPOINT
+                        endpoint to subscribe to for zmq notifications from
+                        c-lightning via cl-zmq.py plugin
+  -m MOCK_ENDPOINT, --mock-endpoint MOCK_ENDPOINT
+                        endpoint to subscribe to zmq notifcations from a test
+                        script such as mock-png.py
+  -w WEBSOCKET_PORT, --websocket-port WEBSOCKET_PORT
+                        port to listen for incoming websocket connections
+  -a ART_DB_DIR, --art-db-dir ART_DB_DIR
+                        directory to save the image state and logs
+```
+
+## Running the frontend
+
+The [frontend/](frontend/) directory has the html and javascript of the frontend web page. For running with your setup, it will need to be modified to connect to the right websocket host and port (ws://localhost:9000) for example.
+
+## Testing with Art.
+
+The server can be configured with the `MOCK_ENDPOINT` launch arg to accept payloads from that second endpoint. A [test script](test/mock-tlv-png.py) has been provided which can publish valid `htlc_accepted` and `forward_event` payloads with valid pixels to that endpoint based on an arbitrary .png. This may be useful for testing that everything works before relying on real LN payments to drive the app.
+
 
 # Crash Course: How Do I Make My Own Extension TLV App?
 
-At this time (Jan. 2020) the area of the spec is still quite raw. This application's implementation may help guide you on how to do it with C-Lightning, but there will likely be better ways in the future. Here is a quick tour of what is here:
+At this time (Jan. 2020) everything here is very bleeding-edge and raw. This application's implementation may help guide you on how to do it with C-Lightning, but there will likely be better ways in the future. Here is a quick tour of what is here:
 
 ## Basic TLV Encoding
 The code under [bolt/](bolt/) handles the encoding of TLVs and payloads according to the BOLT 1 and BOLT 4 specifications. In particular, [hop_payload.py](bolt/hop_payload.py) uses the rest of the utilities to encode and parse hop payloads for the onion packets that give normal TLV routing instructions as per BOLT 4.
@@ -138,14 +172,14 @@ C-Lightning provides the `createonion` command, however there are a few things t
 
 ## Circular Routing
 
-Onion Studio routes to pay the the destination by routing in a circular path and paying the destination via the routing hop fee. That means that the BOLT11 invoice is created by your local node and paid by your same local node via the circular route (this is similar to how channel re-balances work). This avoids the problem of needing to coordinate with the destination node and/or doing some sort of "Key Send" operation to make a undirectional payment. Conceptually, this circual payment might be a bit to grok at first, but it is a powerful tool for app design that Onion Studio demonstrates.
+Onion Studio routes to pay the destination by routing in a circular path and paying the destination via the routing hop fee. That means that the BOLT11 invoice is created by your local node and paid by your same local node via the circular route (this is similar to how channel re-balances work). This avoids the problem of needing to coordinate with the destination node and/or doing some sort of "Key Send" operation to make a undirectional payment. Conceptually, this circular payment might be a bit to grok at first, but it is a powerful tool for app design that Onion Studio demonstrates.
 
-## Recieving Extension TLVs
+## Receiving Extension TLVs
 
 C-Lightning's plugin system allows an application to register for the `htlc_accepted` hook which allows you to examine the TLV payloads as they are being used to route. At this time, the application can parse the payload and examine the forwarding payment that will be made if this HTLC is fulfilled.
 
 
-Similarly, an application can use a the plugin system to register for the `forward_event` notification to know when a forwarding HTLC is fulfiled. If it matches the `payment_hash` value of the previoust `htlc_accepted` hook notification, that means that the node has been paid and the extension TLV can be executed on.
+Similarly, an application can use the plugin system to register for the `forward_event` notification to know when a forwarding HTLC is fulfilled. If it matches the `payment_hash` value of the previous `htlc_accepted` hook notification, that means that the node has been paid and the extension TLV can be executed on.
 
 Onion Studio demonstrates how these value can be obtained via a plugin and passed in and parsed by an app [onionstudio.py](onionstudio.py). However, the `forward_event` and `htlc_accepted` data gets passed to it via the [cl-zmq.py](depends/cl-zmq.py) plugin over ZeroMQ rather than have the websocket server directly connected to the plugin. It is suggested that this is a good architectural template to build apps of this type off of rather than put an access of application logic directly in a plugin script.
 
