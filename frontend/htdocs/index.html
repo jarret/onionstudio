@@ -73,9 +73,15 @@ file LICENSE or http://www.opensource.org/licenses/mit-license.php -->
       <option>3</option>
       <option>4</option>
       <option>5</option>
+      <option>6</option>
+      <option>7</option>
+      <option>8</option>
     </select>
     </p>
 
+    <div id="loading">
+    <h3>Loading art, please hang on....</h3>
+    </div>
     <center>
     <div id="art-space"></div>
     <P class="body">
@@ -111,6 +117,10 @@ for (let i = 0; i < WIDTH; i++) {
 
 let PX_SIZE = DEFAULT_PX_SIZE;
 
+function DoneLoading() {
+    var loading = document.getElementById('loading');
+    loading.style.display = "none";
+}
 
 function drawColor(ctx, px_size, x, y, color) {
     COLORS[x][y] = color;
@@ -230,6 +240,7 @@ function handleBinary(data) {
            const compressed = new Uint8Array(event.target.result);
            const inflated = pako.inflate(compressed);
            handleNotification(inflated.buffer);
+           DoneLoading();
     };
     reader.readAsArrayBuffer(data);
 }
