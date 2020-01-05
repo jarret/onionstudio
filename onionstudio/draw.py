@@ -13,6 +13,8 @@ class Draw:
         self.rpc = rpc
         self.dst_node = dst_node
         self.pixels = pixels
+        self.total_pixels = len(self.pixels)
+        self.pixels_drawn = 0
 
     ###########################################################################
 
@@ -84,24 +86,29 @@ class Draw:
             if err:
                 return err
             if pixels_drawn:
+                self.pixels_drawn += pixels_drawn
                 pixels = pixels[pixels_drawn:]
             if len(pixels) == 0:
                 print("all pixels drawn")
                 return None
+
+    def _get_report(self):
+        return {"total_pixels": self.total_pixels,
+                "pixels_drawn": self.pixels_drawn}
 
     ###########################################################################
 
     def run(self):
         myid, block_height, err = self._get_myid_blockheight()
         if err:
-            return err
+            return self._get_report(), err
         print("myid: %s, block_height %s" % (myid, block_height))
         try:
             err = self._draw_loop(myid, block_height)
             if err:
-                return err
+                return self._get_report(), err
         except Exception as e:
             import traceback
             print(traceback.format_exc())
-            return None, "error while buying pixels: %s" % e
-        return None
+            return self._get_report(), None, "error while buying pixels: %s" % e
+        return self._get_report(), None

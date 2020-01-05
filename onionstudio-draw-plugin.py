@@ -32,14 +32,15 @@ def parse_pixel_args(pixels_string):
 
 @plugin.method("os_draw_pixels")
 def draw_pixels(plugin, pixels):
-    """Draws manually-specified pixels to Onion Studio at the cost of 1
-       satoshi per pixel
+    """
+Draws manually-specified pixels to Onion Studio at the cost of 1
+satoshi per pixel.
 
-        pixels - is a string that specifies the x,y cordinates and RGB colors
-            eg. 1_1_fff will set the pixel at coordinate at (1, 1) to
-                white #fff
-                1_1_0f0_2_2_0f0 will set the pixels at coordinates
-                (1, 1) and (2,2) to green #0f0
+pixels - is a string that specifies the x,y cordinates and RGB colors.
+    eg. 1_1_fff will set the pixel at coordinate at (1, 1) to
+        white #fff
+        1_1_0f0_2_2_0f0 will set the pixels at coordinates
+        (1, 1) and (2,2) to green #0f0
     """
     pixels, err = parse_pixel_args(pixels)
     if err:
@@ -47,10 +48,13 @@ def draw_pixels(plugin, pixels):
     plugin.log("pixels: %s" % [str(p) for p in pixels])
     node = plugin.get_option("onion_studio_node")
     d = Draw(plugin.rpc, node, pixels)
-    err = d.run()
+    report, err = d.run()
+    if report:
+        report = "drew %d out of %d pixels" % (report['pixels_drawn'],
+                                               report['total_pixels'])
     if err:
-        return err
-    return "finished drawing %d pixels" % len(pixels)
+        return err if not report else report + "\n" + err
+    return report
 
 ###############################################################################
 
@@ -68,17 +72,25 @@ def parse_png_args(x_offset_string, y_offset_string, png_filename):
     return x_offset, y_offset, png_filename, None
 
 @plugin.method("os_draw_png")
-def draw_png(plugin, x_offset, y_offset, png_filename, big=""):
-    """ Draws a png image file to Onion Studio placed with the top corner at
-        the given x and y offset. It will be drawn at a cost of 1 satoshi per
-        pixel. The color space will be clamped to the 12-bit colorspace that
-        Onion Studio requires.  Transparent pixels in the image will be
-        ignored.
-        x_offset = the x coordinate to place the image
-        y_offset = the y coordinate to place the image
-        png_filename = the path to a .png file to use as the source image
-        big = provide the string 'big' to opt in to allowing large amounts
-            of pixels to be bought with one invocation of this command
+def draw_png(plugin, x_offset, y_offset, png_filename, big="", resume_at_px=0):
+    """
+Draws a png image file to Onion Studio placed with the top corner at
+the given x and y offset. It will be drawn at a cost of 1 satoshi per
+pixel. The color space will be clamped to the 12-bit colorspace that
+Onion Studio requires.  Transparent pixels in the image will be
+ignored.
+
+x_offset = the x coordinate to place the image.
+
+y_offset = the y coordinate to place the image.
+
+png_filename = the path to a .png file to use as the source image.
+
+big = provide the string 'big' to opt in to allowing large amounts of pixels to
+be bought with one invocation of this command.
+
+resume_at_px = a pixel number in the list of derived pixels to resume a drawing
+operation at. Useful if a mult-part drawing operation fails midway.
     """
     x_offset, y_offset, png_filename, err = parse_png_args(x_offset, y_offset,
                                                            png_filename)
@@ -86,7 +98,7 @@ def draw_png(plugin, x_offset, y_offset, png_filename, big=""):
         return err
 
     pp = PngToPixels(png_filename)
-    pixels = list(pp.iter_at_offset(x_offset, y_offset))
+    pixels = list(pp.iter_at_offset(x_offset, y_offset))[resume_at_px:]
 
     if big != "big" and len(pixels) > PNG_PIXEL_SAFETY:
         return ("*** This will draw %d pixels at a cost of %d satoshis, "
@@ -96,10 +108,13 @@ def draw_png(plugin, x_offset, y_offset, png_filename, big=""):
                                                            len(pixels))
     node = plugin.get_option("onion_studio_node")
     d = Draw(plugin.rpc, node, pixels)
-    err = d.run()
+    report, err = d.run()
+    if report:
+        report = "drew %d out of %d pixels" % (report['pixels_drawn'],
+                                               report['total_pixels'])
     if err:
-        return err
-    return "finished drawing %d pixels" % len(pixels)
+        return err if not report else report + "\n" + err
+    return report
 
 ###############################################################################
 

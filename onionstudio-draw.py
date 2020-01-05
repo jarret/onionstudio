@@ -9,7 +9,7 @@ from onionstudio.manual import ManualToPixels
 
 from pyln.client import LightningRpc
 
-
+# the "offical" onion studio node
 NODE = "02e389d861acd9d6f5700c99c6c33dd4460d6f1e2f6ba89d1f4f36be85fc60f8d7"
 
 PNG_PIXEL_SAFETY = 1000
@@ -20,32 +20,34 @@ def manual_func(s, rpc):
     ap = ManualToPixels(s.pixels)
     pixels, err = ap.parse_pixels()
     if err:
-        return err
+        return None, err
     d = Draw(rpc, NODE, pixels)
-    return d.run()
+    report, err = d.run()
+    return report, err
 
 def png_func(s, rpc):
     try:
         from PIL import Image
     except:
-        return ("\n*** couldn't find pillow library dependency for png images\n"
-                "try:\n"
-                "  $ sudo apt-get install libopenjp2-7 libtiff5\n"
-                "  $ sudo pip3 install pillow")
+        return None, ("\n*** couldn't find pillow library dependency for png images\n"
+                      "try:\n"
+                      "  $ sudo apt-get install libopenjp2-7 libtiff5\n"
+                      "  $ sudo pip3 install pillow")
     if not os.path.isfile(s.png_file):
-        return "no such file? %s" % s.png_file
+        return None, "no such file? %s" % s.png_file
 
     pp = PngToPixels(s.png_file)
     pixels = list(pp.iter_at_offset(s.x_offset, s.y_offset))
     if not s.big and len(pixels) > PNG_PIXEL_SAFETY:
-        return ("*** This will draw %d pixels at a cost of %d satoshis, "
-                "which is a lot so we want to make sure you actually intend "
-                "to spend that amount. To proceed with this, please use the "
-                "--big cli option.") % (len(pixels), len(pixels))
+        return None, ("*** This will draw %d pixels at a cost of %d satoshis, "
+                      "which is a lot so we want to make sure you actually intend "
+                      "to spend that amount. To proceed with this, please use the "
+                      "--big cli option.") % (len(pixels), len(pixels))
 
     #pixels = pixels[0 - (2 * len(pixels) // 3):] # hack to continue failed drawing
     d = Draw(rpc, NODE, pixels)
-    return d.run()
+    report, err = d.run()
+    return report, err
 
 ###############################################################################
 
@@ -77,6 +79,9 @@ png.add_argument("y_offset", type=int,
 png.add_argument("png_file", type=str, help="the path to the png file to use")
 png.add_argument("-b", "--big", action="store_true",
                  help="acknowledge that this is a big spend and proceed anyway")
+png.add_argument("-r", "--resume-at-px", type=int, default=0,
+                 help="resume the drawing at a this pixels. useful if a draw "
+                      "is interrupted midway")
 png.set_defaults(func=png_func)
 
 settings = parser.parse_args()
@@ -87,6 +92,10 @@ if not os.path.exists(settings.lightning_rpc):
 
 rpc = LightningRpc(settings.lightning_rpc)
 
-err = settings.func(settings, rpc)
+report, err = settings.func(settings, rpc)
+if report:
+    print("drew %d out of %d pixels" % (report['pixels_drawn'],
+                                        report['total_pixels']))
 if err:
     sys.exit(err)
+
