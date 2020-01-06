@@ -12,6 +12,8 @@ NODE = "02e389d861acd9d6f5700c99c6c33dd4460d6f1e2f6ba89d1f4f36be85fc60f8d7"
 
 PNG_PIXEL_SAFETY = 1000
 
+CATEGORY = "Onion Studio"
+
 ###############################################################################
 
 plugin = Plugin()
@@ -24,24 +26,31 @@ def init(options, configuration, plugin, **kwargs):
 
 ###############################################################################
 
-def parse_pixel_args(pixels_string):
-    pixels, err = ManualToPixels(pixels_string)
-    if err:
-        return None, None, err
-    return pixels, None
+PIXELS_DESC = "Draw manually-specified pixels."
 
-@plugin.method("os_draw_pixels")
-def draw_pixels(plugin, pixels):
-    """
+PIXELS_LONG_DESC = """
 Draws manually-specified pixels to Onion Studio at the cost of 1
 satoshi per pixel.
 
 pixels - is a string that specifies the x,y cordinates and RGB colors.
-    eg. 1_1_fff will set the pixel at coordinate at (1, 1) to
+    Eg.
+        1_1_fff will set the pixel at coordinate at (1, 1) to
         white #fff
+
         1_1_0f0_2_2_0f0 will set the pixels at coordinates
         (1, 1) and (2,2) to green #0f0
-    """
+"""
+
+def parse_pixel_args(pixels_string):
+    mp = ManualToPixels(pixels_string)
+    pixels, err = mp.parse_pixels()
+    if err:
+        return None, err
+    return pixels, None
+
+@plugin.method("os_draw_pixels", category=CATEGORY, desc=PIXELS_DESC,
+               long_desc=PIXELS_LONG_DESC)
+def draw_pixels(plugin, pixels):
     pixels, err = parse_pixel_args(pixels)
     if err:
         return err
@@ -58,6 +67,29 @@ pixels - is a string that specifies the x,y cordinates and RGB colors.
 
 ###############################################################################
 
+PNG_DESC = ("Draws pixels sourced from a .png image placed at a chosen "
+            "coordinate")
+
+PNG_LONG_DESC = """
+Draws a png image file to Onion Studio placed with the top left corner at the
+given x and y offset. It will be drawn at a cost of 1 satoshi per pixel. The
+color space will be clamped to the 12-bit colorspace that Onion Studio
+requires. Transparent pixels in the image will not be drawn.
+
+    x_offset = the x coordinate to place the image.
+
+    y_offset = the y coordinate to place the image.
+
+    png_filename = the path to a .png file to use as the source image.
+
+    big = provide the string 'big' to opt in to allowing large amounts of
+        pixels to be bought with one invocation of this command.
+
+    resume_at_px = a pixel number in the list of pixels to resume a drawing
+        operation. Allows easy continuation if a previous mult-part drawing
+        operation fails midway.
+"""
+
 def parse_png_args(x_offset_string, y_offset_string, png_filename):
     png_filename = os.path.abspath(png_filename)
     try:
@@ -71,27 +103,9 @@ def parse_png_args(x_offset_string, y_offset_string, png_filename):
         return None, None, None, "not a png file: %s" % png_filename
     return x_offset, y_offset, png_filename, None
 
-@plugin.method("os_draw_png")
+@plugin.method("os_draw_png", category=CATEGORY, desc=PNG_DESC,
+               long_desc=PNG_LONG_DESC)
 def draw_png(plugin, x_offset, y_offset, png_filename, big="", resume_at_px=0):
-    """
-Draws a png image file to Onion Studio placed with the top corner at
-the given x and y offset. It will be drawn at a cost of 1 satoshi per
-pixel. The color space will be clamped to the 12-bit colorspace that
-Onion Studio requires.  Transparent pixels in the image will be
-ignored.
-
-x_offset = the x coordinate to place the image.
-
-y_offset = the y coordinate to place the image.
-
-png_filename = the path to a .png file to use as the source image.
-
-big = provide the string 'big' to opt in to allowing large amounts of pixels to
-be bought with one invocation of this command.
-
-resume_at_px = a pixel number in the list of derived pixels to resume a drawing
-operation at. Useful if a mult-part drawing operation fails midway.
-    """
     x_offset, y_offset, png_filename, err = parse_png_args(x_offset, y_offset,
                                                            png_filename)
     if err:

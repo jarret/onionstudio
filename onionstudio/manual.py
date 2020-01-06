@@ -10,7 +10,7 @@ class ManualToPixels:
         if len(string_tokens) == 0:
             return None, "no pixels given"
         if len(string_tokens) % 3 != 0:
-            return None, "could not parse %s as pixels" % pixels
+            return None, 'could not parse "%s" as pixels' % self.pixels_string
         pixels = []
         for i in range(0, len(string_tokens), 3):
             pixel_tokens = string_tokens[i:i+3]
