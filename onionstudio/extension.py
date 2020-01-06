@@ -1,3 +1,6 @@
+# Copyright (c) 2020 Jarret Dyrbye
+# Distributed under the MIT software license, see the accompanying
+# file LICENSE or http://www.opensource.org/licenses/mit-license.php
 from bolt.util import h2b
 from bolt.bigsize import BigSize
 from bolt.tlv import Tlv
