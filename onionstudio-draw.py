@@ -89,9 +89,11 @@ png.set_defaults(func=png_func)
 
 settings = parser.parse_args()
 
-
 if not os.path.exists(settings.lightning_rpc):
-    sys.exit("no such file? %s" % settings.lightning_rpc)
+    sys.exit("*** no such file? %s" % settings.lightning_rpc)
+
+if not hasattr(settings, "func"):
+    sys.exit("*** must specify either 'manual' or 'png' mode")
 
 rpc = LightningRpc(settings.lightning_rpc)
 

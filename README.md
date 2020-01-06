@@ -2,15 +2,17 @@
 
 # Onion Studio!
 
-An application of TLV extension data in onion packets for drawing anonymous art via the Lightning Network.
+An application of TLV extension data in onion packets for drawing art anonymously via the Lightning Network.
 
 https://onion.studio
+
+The C-Lightning node hosting this app is `02e389d861acd9d6f5700c99c6c33dd4460d6f1e2f6ba89d1f4f36be85fc60f8d7@54.188.180.102:9735` (new channels and rebalancing for incoming capacity appreciated!)
 
 
 # Drawing Pixels
 
 ### Dependencies
-This requires you be running [C-Lightning](https://github.com/ElementsProject/lightning) version `v0.8.0` or later. The provided client uses the `createonion` and `sendonion` RPC calls introduced in `v0.8.0`. At this time, I am aware of no other LN wallet or node implementation that supports building onion packets to include Onion Studio's custom TLV extensions.
+This requires you be running [C-Lightning](https://github.com/ElementsProject/lightning) version `v0.8.0` or later. The provided client depends on the `createonion` and `sendonion` RPC calls introduced in `v0.8.0`. At this time, I am aware of no other LN wallet or node implementation that supports building onion packets to include Onion Studio's custom TLV extensions.
 
 The provided client also uses the Python wrapper that is imported as `pyln.client` which is installed the PyPi package `pyln-client` (formerly `pylightning`).
 
@@ -36,7 +38,7 @@ $ cd onionstudio
 
 On [the frontend of Onion Studio](https://onion.studio), the drawable pixel grid is 1024 pixels by 1024 pixels. The top left corner pixel is coordinate `(0, 0)`. The bottom right pixel is coordinate `(1023, 1023)`. When drawing from .png source files, the placement coordinate you will need to specify is where to align the top left corner of that image on this grid.
 
-The 'native' color depth of this art space is 12 bit colors which are specified by 3-character hex RGB strings. Eg.
+The 'native' color depth of this art space is 12 bits which are specified by 3-character hex RGB strings. Eg.
 
 
 | 12-bit hex    | Color          |
@@ -50,18 +52,18 @@ The 'native' color depth of this art space is 12 bit colors which are specified 
 
 If you provide a .png file of a different color depth, the colors will be clamped to 12 bits of precision per pixel.
 
-If you provide a .png file with alpha channel transparency, the transparent pixels will be dropped from the purchase, allowing you to cleanly place irregularly-shaped images on top of others.
+If you provide a .png file with alpha channel transparency, the transparent pixels will be dropped from the purchase allowing you to place irregularly-shaped images.
 
 ### Pricing
 
-Each pixel costs 1 satoshi to draw, which is inexpensive, unless you are drawing a large .png image, for which the costs can add up quickly. The scripts will require you to opt-in with the `--big` flag to draw more than 1000 pixels in one instruction. It is suggested that you test things out with small draws to validate your setup and understanding before getting more ambitious.
+Each pixel costs 1 satoshi to draw, which is relatively inexpensive unless you are drawing a large .png image.The scripts will require you to opt-in with the `--big` flag to gain acknowledgement you intend to draw more than 1000 pixels in one instruction. It is suggested that you test things out with small draws to validate your setup and understanding before getting more ambitious.
 
 ### Drawing via Standalone Client
 
-In this repository, the [onionstudio-draw.py](onionstudio-draw.py) executable will draw pixels via your provided input parameters. However, it will need to be pointed at the JSON-RPC file of your running C-Lightning node which is typically in your `lightning-dir`. You will also need to choose between `manual` and `png` mode for the style of drawing.
+In this repository, the [onionstudio-draw.py](onionstudio-draw.py) executable will draw pixels via your provided input parameters. However, it will need to be pointed at the JSON-RPC file of your running C-Lightning node which is typically in your `lightning-dir`. You will also need to choose between `pixel` and `png` mode for the style of drawing.
 
 ```
-$ ./onionstudio-draw.py /path/to/lightining-dir/bitcoin/lightning-rpc manual -h
+$ ./onionstudio-draw.py ~/lightningd-run/lightning-dir/bitcoin/lightning-rpc manual -h
 usage: onion-draw.py lightning_rpc manual [-h] pixels
 
 positional arguments:
@@ -71,18 +73,24 @@ positional arguments:
 
 optional arguments:
   -h, --help  show this help message and exit
-
+```
+```
 $ ./onionstudio-draw.py ~/lightningd-run/lightning-dir/bitcoin/lightning-rpc png -h
-usage: onion-draw.py lightning_rpc png [-h] [-b] x_offset y_offset png_file
+usage: onion-draw.py lightning_rpc png [-h] [-b] [-r RESUME_AT_PX]
+                                       x_offset y_offset png_file
 
 positional arguments:
-  x_offset    the x coordinate to begin drawing at
-  y_offset    the y coordinate to begin drawing at
-  png_file    the path to the png file to use
+  x_offset              the x coordinate to begin drawing at
+  y_offset              the y coordinate to begin drawing at
+  png_file              the path to the png file to use
 
 optional arguments:
-  -h, --help  show this help message and exit
-  -b, --big   acknowledge that this is a big spend and proceed anyway
+  -h, --help            show this help message and exit
+  -b, --big             acknowledge that this is a big spend and proceed
+                        anyway
+  -r RESUME_AT_PX, --resume-at-px RESUME_AT_PX
+                        resume the drawing at a this pixels. useful if a draw
+                        is interrupted midway
 
 ```
 
@@ -96,33 +104,39 @@ To draw a .png file of your creation with the top-left corner placed at coordina
 ```
 $ ./onionstudio-draw.py /path/to/lightining-dir/bitcoin/lightning-rpc png 300 400 /path/to/my/image.png
 ```
+To start (or re-start upon partial failure) the drawing from a particular pixel in the list, you can use the optional `--resume-at-px` argument.
+```
+$ ./onionstudio-draw.py /path/to/lightining-dir/bitcoin/lightning-rpc png 300 400 /path/to/my/image.png --resume-at-px 500
+```
 
 ### Drawing via Plugin
 
 For convenience, the same functionality is also bundled into a C-Lightning plugin. The [onionstudio-draw-plugin.py](onionstudio-draw-plugin.py) is the plugin executable to be copied to the `plugin/` directory of your C-Lightning node. The `bolt/` and `onionstudio/` directories of this repo will need to be copied to the `plugin/` directory also.
 
 ```
-$ cp -r onionstudio-draw-plugin.py bolt onionstudio /path/to/lightning-dir/plugins/
+$ cp -r onionstudio-draw-plugin.py bolt/ onionstudio/ /path/to/lightning-dir/plugins/
 ```
 
-Upon loading this plugin, your `lightning-cli` interface should have the `os_draw_pixels` and `os_draw_png` commands. The equivalents of the earlier two examples are:
+Upon loading this plugin, your `lightning-cli` interface should have the `os_draw_manual` and `os_draw_png` commands. The equivalents of the earlier two examples are:
 
 ```
-$ lightning-cli os_draw_pixels 100_100_000
+$ lightning-cli os_draw_manual 100_100_000
 ```
 
 ```
 $ lightning-cli os_draw_png 300 400 /path/to/my/image.png
 ```
 
-If you have any trouble loading the plugin, please ensure the standalone script works first since it will give you easier-to-read error messages if there are any dependancy problems.
+`lightning-cli`'s `help` command will provide documentation.
+
+If you have any trouble loading the plugin, please ensure the standalone script works first since it will give you easier-to-read error messages if there are any dependency problems.
 
 
 # Running My Own Onion Studio Server
 
 ### Running the ZeroMQ plugin
 
-The provided [cl-zmq.py](depends/cl-zmq.py) plugin is a slightly modified version of [the one in the official community repo](https://github.com/lightningd/plugins/tree/master/zmq). It is needed to publish the `forward_event` notification and the `htlc_accepted` hook to a ZeroMQ endpoint where the Onion Studio Server can pick it up. This plugin will need to be loaded and the node will need to be started with launch args that are similar to: `--zmq-pub-forward-event=tcp://0.0.0.0:5556 --zmq-pub-htlc-accepted=tcp://0.0.0.0:5556` in order to configure the plugin to publish to that specific endpoint (`tcp://0.0.0.0:5556` in the example). The [example-subscriber.py](depends/example-subscriber.py) script might be useful for testing, observing, and logging these events as seen by the server.
+The provided [cl-zmq.py](depends/cl-zmq.py) plugin is a slightly modified version of [the one in the official community repo](https://github.com/lightningd/plugins/tree/master/zmq). It is needed to publish the `forward_event` notification and the `htlc_accepted` hook to a ZeroMQ endpoint where the Onion Studio server can pick it up. This plugin will need to be loaded and the node will need to be started with launch args that are similar to: `--zmq-pub-forward-event=tcp://0.0.0.0:5556 --zmq-pub-htlc-accepted=tcp://0.0.0.0:5556` in order to configure the plugin to publish to that specific endpoint (`tcp://0.0.0.0:5556` in the example). The [example-subscriber.py](depends/example-subscriber.py) script might be useful for testing, observing, and logging these events as seen by the server.
 
 ### Running the Server
 
@@ -148,11 +162,11 @@ optional arguments:
 
 ### Running the frontend
 
-The [frontend/](frontend/) directory has the html and javascript of the frontend web page. For running with your setup, it will need to be modified to connect to the right websocket host and port (ws://localhost:9000) for example.
+The [frontend/](frontend/) directory has the html and javascript of the frontend web page. For running with your setup, it will need to be modified to connect to the right websocket host and port (`ws://localhost:9000` for example).
 
 ### Testing with Art.
 
-The server can be configured with the `MOCK_ENDPOINT` launch arg to accept payloads from that second endpoint. A [test script](test/mock-tlv-png.py) has been provided which can publish valid `htlc_accepted` and `forward_event` payloads with valid pixels to that endpoint based on an arbitrary .png. This may be useful for testing that everything works before relying on real LN payments to drive the app.
+The server can be configured with the `MOCK_ENDPOINT` launch arg to accept payloads from that second endpoint. A [test script](test/mock-tlv-png.py) has been provided which can publish valid `htlc_accepted` and `forward_event` payloads with valid pixels to that endpoint based on an arbitrary `.png` image. This may be useful for testing that everything works before relying on real LN payments to drive the app.
 
 ### Using The Clients With A Different Server
 
@@ -176,7 +190,7 @@ C-Lightning provides the `createonion` command, however there are a few things t
 
 ### Circular Routing
 
-Onion Studio routes to pay the destination by routing in a circular path and paying the destination via the routing hop fee. That means that the BOLT11 invoice is created by your local node and paid by your same local node via the circular route (this is similar to how channel re-balances work). This avoids the problem of needing to coordinate with the destination node and/or doing some sort of "Key Send" operation to make a undirectional payment. Conceptually, this circular payment might be a bit to grok at first, but it is a powerful tool for app design that Onion Studio demonstrates.
+Onion Studio routes to pay the destination by routing in a circular path and paying the destination via the routing hop fee. That means that the BOLT11 invoice is created by your local node and paid by your same local node via the circular route (this is similar to how channel re-balances work). This avoids the problem of needing to coordinate with the destination node and/or doing some sort of "Key Send" operation to make a undirectional payment. Conceptually, this circular payment might be a bit difficult to grok at first, but it is a powerful tool that can be used in app design which Onion Studio demonstrates.
 
 ### Receiving Extension TLVs
 
@@ -185,7 +199,7 @@ C-Lightning's plugin system allows an application to register for the `htlc_acce
 
 Similarly, an application can use the plugin system to register for the `forward_event` notification to know when a forwarding HTLC is fulfilled. If it matches the `payment_hash` value of the previous `htlc_accepted` hook notification, that means that the node has been paid and the extension TLV can be executed on.
 
-Onion Studio demonstrates how these value can be obtained via a plugin and passed in and parsed by an app [onionstudio.py](onionstudio.py). However, the `forward_event` and `htlc_accepted` data gets passed to it via the [cl-zmq.py](depends/cl-zmq.py) plugin over ZeroMQ rather than have the websocket server directly connected to the plugin. It is suggested that this is a good architectural template to build apps of this type off of rather than put an access of application logic directly in a plugin script.
+Onion Studio demonstrates how these value can be obtained via a plugin and passed in and parsed by the application's main event loop in [onionstudio.py](onionstudio.py). However, the `forward_event` and `htlc_accepted` data gets passed to it via the [cl-zmq.py](depends/cl-zmq.py) plugin over ZeroMQ rather than have the websocket server directly connected to the plugin. It is suggested that this is a good architectural template to build apps of this type off of rather than put an access of application logic directly in a plugin script.
 
 # What's With the Clown?
 

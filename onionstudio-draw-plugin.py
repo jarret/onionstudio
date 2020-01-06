@@ -29,9 +29,9 @@ def init(options, configuration, plugin, **kwargs):
 
 ###############################################################################
 
-PIXELS_DESC = "Draw manually-specified pixels."
+MANUAL_DESC = "Draw manually-specified pixels."
 
-PIXELS_LONG_DESC = """
+MANUAL_LONG_DESC = """
 Draws manually-specified pixels to Onion Studio at the cost of 1
 satoshi per pixel.
 
@@ -51,9 +51,9 @@ def parse_pixel_args(pixels_string):
         return None, err
     return pixels, None
 
-@plugin.method("os_draw_pixels", category=CATEGORY, desc=PIXELS_DESC,
-               long_desc=PIXELS_LONG_DESC)
-def draw_pixels(plugin, pixels):
+@plugin.method("os_draw_manual", category=CATEGORY, desc=MANUAL_DESC,
+               long_desc=MANUAL_LONG_DESC)
+def draw_manual(plugin, pixels):
     pixels, err = parse_pixel_args(pixels)
     if err:
         return err
