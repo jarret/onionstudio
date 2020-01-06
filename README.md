@@ -6,7 +6,13 @@ An application of TLV extension data in onion packets for drawing art anonymousl
 
 https://onion.studio
 
-The C-Lightning node hosting this app is `02e389d861acd9d6f5700c99c6c33dd4460d6f1e2f6ba89d1f4f36be85fc60f8d7@54.188.180.102:9735` (new channels and rebalancing for incoming capacity appreciated!)
+The node hosting this app is:
+
+```
+02e389d861acd9d6f5700c99c6c33dd4460d6f1e2f6ba89d1f4f36be85fc60f8d7@54.188.180.102:9735
+```
+
+New channels and rebalancing for incoming capacity appreciated!
 
 
 # Drawing Pixels
