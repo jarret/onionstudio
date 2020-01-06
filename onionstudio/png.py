@@ -28,7 +28,7 @@ class PngToPixels:
                 b = px_data[idx][2]
                 a = px_data[idx][3]
                 # drop mostly transparent pixels
-                if (a < 200):
+                if (a < 128):
                     continue
                 #print("r g b a: %d %d %d %d" % (r,g,b,a))
                 rgb = "%02x%02x%02x" % (r, g, b)
