@@ -221,7 +221,7 @@ class Onion:
         if self._sum_payload_sizes(hops) > ONION_SIZE:
             print("payloads are too big, retrying with less pixels")
             return {'status':              "recalculate",
-                    "needed_hops":         needed_hops,
+                    "needed_hops":         len(hops),
                     "pixel_underestimate": pixel_underestimate + 3}
         return {'status':    'success',
                 'hops':      hops,
