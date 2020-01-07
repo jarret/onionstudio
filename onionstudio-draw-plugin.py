@@ -99,7 +99,7 @@ def parse_png_args(x_offset_string, y_offset_string, png_filename):
         x_offset = int(x_offset_string)
         y_offset = int(y_offset_string)
     except:
-        return None, None, "could not parse args"
+        return None, None, None, "could not parse args"
     if not os.path.isfile(png_filename):
         return None, None, None, "no file at path: %s" % png_filename
     if not png_filename.endswith(".png"):
