@@ -86,7 +86,8 @@ class Onion:
     def _get_returning_route(self, myid):
         try:
             r = self.rpc.getroute(myid, SELF_PAYMENT, RISK_FACTOR,
-                                  fromid=self.dst_node)
+                                  fromid=self.dst_node, fuzzpercent=0.0,
+                                  maxhops=MAX_HOPS)
             return r, None
         except:
             return None, "could not find route from %s to %s" % (self.dst_node,
