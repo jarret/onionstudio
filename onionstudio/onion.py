@@ -64,15 +64,19 @@ class Onion:
         # end tlv hop
         est += 46 + 32
         # target mid hop
-        est += 18 + 32
-        # other hops
+        est += 21 + 32
+        # other hops - assume legacy since those are going to be bigger
         est += (33 + 32) * (n_hops - 2)
-        return est + 30 # since this is a fudge overestimate a bit
+        return est
 
     def _estimate_payload_pixels(self, n_hops):
+        print("estimating for %d hops" % n_hops)
+        print("routing bytes: %d" % self._estimate_routing_bytes(n_hops))
         approx_bytes = ONION_SIZE - self._estimate_routing_bytes(n_hops)
+        print("bytes for payload: %d" % approx_bytes)
         approx_pixels = math.floor(approx_bytes / PIXEL_BYTE_SIZE)
-        return approx_pixels - 10 # underestimate a bit
+        print("pixels payload: %d" % approx_pixels)
+        return approx_pixels
 
     ###########################################################################
 
@@ -237,6 +241,9 @@ class Onion:
                                    attempting_pixel_list)
         print("generated hops:")
         self.print_dict(hops)
+        sum_payload_sizes = self._sum_payload_sizes(hops)
+        print("sum payload sizes: %s" % sum_payload_sizes)
+        print("hops: %s" % len(hops))
         if self._sum_payload_sizes(hops) > ONION_SIZE:
             print("payloads are too big, retrying with less pixels")
             return {'status':              "recalculate",
@@ -268,8 +275,7 @@ class Onion:
             return None, None, "could not create onion"
 
     def _fit_attempt(self, hop_count, pixel_underestimate):
-        dst_payment, pixels = self._slice_pixels(hop_count,
-                                                            pixel_underestimate)
+        dst_payment, pixels = self._slice_pixels(hop_count, pixel_underestimate)
         result = self._get_hops(hop_count, pixel_underestimate, dst_payment,
                                 pixels)
         if result['status'] in {'recalculate', 'err'}:
