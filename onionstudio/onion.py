@@ -23,8 +23,7 @@ MAX_HOPS = 8
 FIT_ONION_TRIES = 20
 
 class Onion:
-    def __init__(self, rpc, myid, dst_node, block_height, invoice,
-                 available_pixels):
+    def __init__(self, rpc, myid, dst_node, invoice, available_pixels):
         """
         Finds a valid onion to route to the destination node that fits as many
         pixels as possible with appropriate payment
@@ -32,7 +31,6 @@ class Onion:
         self.rpc = rpc
         self.myid = myid
         self.dst_node = dst_node
-        self.block_height = block_height
         self.invoice = invoice
         self.payment_secret = self.invoice['payment_secret']
         self.payment_hash = self.invoice['payment_hash']
@@ -71,6 +69,16 @@ class Onion:
         approx_bytes = ONION_SIZE - self._estimate_routing_bytes(n_hops)
         approx_pixels = math.floor(approx_bytes / PIXEL_BYTE_SIZE)
         return approx_pixels - 10 # underestimate a bit
+
+    ###########################################################################
+
+    def _get_block_height(self):
+        try:
+            info = self.rpc.getinfo()
+            print("block height: %d" % info['blockheight'])
+            return info['blockheight']
+        except:
+            return None
 
     ###########################################################################
 
@@ -217,8 +225,12 @@ class Onion:
             return result
         circular = result['circular']
 
-        hops = self._assemble_hops(circular, self.block_height,
-                                   self.payment_secret, attempting_pixel_list)
+        block_height = self._get_block_height()
+        if not block_height:
+            return {'status': "err", 'msg': "could not get block height"}
+
+        hops = self._assemble_hops(circular, block_height, self.payment_secret,
+                                   attempting_pixel_list)
         print("generated hops:")
         self.print_dict(hops)
         if self._sum_payload_sizes(hops) > ONION_SIZE:

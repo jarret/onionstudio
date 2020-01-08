@@ -21,12 +21,12 @@ class Draw:
 
     ###########################################################################
 
-    def _get_myid_blockheight(self):
+    def _get_myid(self):
         try:
             info = self.rpc.getinfo()
-            return info['id'], info['blockheight'], None
+            return info['id'], None
         except:
-            return None, None, "could not get id, block_height"
+            return None, "could not get myid"
 
     def _payment_status(self, payment_hash):
         try:
@@ -49,12 +49,11 @@ class Draw:
 
     ###########################################################################
 
-    def _draw_pixels(self, myid, block_height, pixels):
+    def _draw_pixels(self, myid, pixels):
         invoice, err = Invoice(self.rpc).create_invoice()
         if err:
             return None, err
-        onion_creator = Onion(self.rpc, myid, self.dst_node, block_height,
-                              invoice, pixels)
+        onion_creator = Onion(self.rpc, myid, self.dst_node, invoice, pixels)
         onion_result = onion_creator.fit_onion()
         if onion_result['status'] != "success":
             return None, onion_result['msg']
@@ -84,10 +83,10 @@ class Draw:
             time.sleep(WAIT_FOR_PAYMENT_PERIOD)
         return onion_result['fitted_pixels'], None
 
-    def _draw_loop(self, myid, block_height):
+    def _draw_loop(self, myid):
         pixels = self.pixels
         while True:
-            pixels_drawn, err = self._draw_pixels(myid, block_height, pixels)
+            pixels_drawn, err = self._draw_pixels(myid, pixels)
             if err:
                 return err
             if pixels_drawn:
@@ -104,12 +103,12 @@ class Draw:
     ###########################################################################
 
     def run(self):
-        myid, block_height, err = self._get_myid_blockheight()
+        myid, err = self._get_myid()
         if err:
             return self._get_report(), err
-        print("myid: %s, block_height %s" % (myid, block_height))
+        print("myid: %s" % (myid))
         try:
-            err = self._draw_loop(myid, block_height)
+            err = self._draw_loop(myid)
             if err:
                 return self._get_report(), err
         except Exception as e:
