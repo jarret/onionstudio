@@ -141,7 +141,7 @@ class Onion:
             return {'status': "err", 'msg': err}
         print("found returning route back to ourselves:")
         self.print_dict(returning)
-        needed_hops = len(outgoing) + len(returning)
+        needed_hops = len(outgoing['route']) + len(returning['route'])
         if needed_hops != hop_count:
             print("different hop count than expected, need to recalculate...")
             return {'status':              "recalculate",
