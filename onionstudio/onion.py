@@ -22,6 +22,8 @@ MAX_HOPS = 8
 
 FIT_ONION_TRIES = 20
 
+EXCLUDE = []
+
 class Onion:
     def __init__(self, rpc, myid, cltv_final, dst_node, invoice,
                  available_pixels):
@@ -88,7 +90,7 @@ class Onion:
         try:
             r = self.rpc.getroute(self.dst_node, SELF_PAYMENT + dst_payment,
                                   RISK_FACTOR, fuzzpercent=0.0,
-                                  maxhops=MAX_HOPS)
+                                  maxhops=MAX_HOPS, exclude=EXCLUDE)
             return r, None
         except:
             return None, "could not find route to %s" % (self.dst_node)
@@ -97,7 +99,7 @@ class Onion:
         try:
             r = self.rpc.getroute(myid, SELF_PAYMENT, RISK_FACTOR,
                                   fromid=self.dst_node, fuzzpercent=0.0,
-                                  maxhops=MAX_HOPS)
+                                  maxhops=MAX_HOPS, exclude=EXCLUDE)
             return r, None
         except:
             return None, "could not find route from %s to %s" % (self.dst_node,
