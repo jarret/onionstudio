@@ -75,6 +75,8 @@ class Draw:
             status = self._payment_status(onion_result['payment_hash'])
             if status == "complete":
                 break
+            if status != "pending":
+                print("payment did not complete. Status: %s" % status)
             checks += 1
             if checks == WAIT_FOR_PAYMENT_CHECKS:
                 return None, "payment didn't complete"
