@@ -78,7 +78,7 @@ class Draw:
             checks += 1
             if checks == WAIT_FOR_PAYMENT_CHECKS:
                 return None, "payment didn't complete"
-            print("sleeping waiting for payment to complete...")
+            print("(%s) sleeping waiting for payment to complete..." % status)
             time.sleep(WAIT_FOR_PAYMENT_PERIOD)
         return onion_result['fitted_pixels'], None
 
