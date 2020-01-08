@@ -18,8 +18,9 @@ RISK_FACTOR = 10
 CLTV_FINAL = 10
 ONION_SIZE = 1300
 INITIAL_HOP_GUESS = 4
+MAX_HOPS = 8
 
-FIT_ONION_TRIES = 5
+FIT_ONION_TRIES = 20
 
 class Onion:
     def __init__(self, rpc, myid, dst_node, block_height, invoice,
@@ -76,7 +77,8 @@ class Onion:
     def _get_outgoing_route(self, dst_payment):
         try:
             r = self.rpc.getroute(self.dst_node, SELF_PAYMENT + dst_payment,
-                                  RISK_FACTOR)
+                                  RISK_FACTOR, fuzzpercent=0.0,
+                                  maxhops=MAX_HOPS)
             return r, None
         except:
             return None, "could not find route to %s" % (self.dst_node)
