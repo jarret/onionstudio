@@ -40,7 +40,7 @@ def png_func(s, rpc):
         return None, "no such file? %s" % s.png_file
 
     pp = PngToPixels(s.png_file)
-    pixels = list(pp.iter_at_offset(s.x_offset, s.y_offset))
+    pixels = list(pp.iter_at_offset(s.x_offset, s.y_offset))[s.resume_at_px:]
     if not s.big and len(pixels) > PNG_PIXEL_SAFETY:
         return None, ("*** This will draw %d pixels at a cost of %d satoshis, "
                       "which is a lot so we want to make sure you actually intend "
