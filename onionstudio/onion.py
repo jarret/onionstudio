@@ -15,7 +15,7 @@ from bolt.hop_payload import LegacyHopPayload, TlvHopPayload
 
 
 RISK_FACTOR = 10
-CLTV_FINAL = 10
+CLTV_FINAL_PAD = 3
 ONION_SIZE = 1300
 INITIAL_HOP_GUESS = 4
 MAX_HOPS = 8
@@ -23,7 +23,8 @@ MAX_HOPS = 8
 FIT_ONION_TRIES = 20
 
 class Onion:
-    def __init__(self, rpc, myid, dst_node, invoice, available_pixels):
+    def __init__(self, rpc, myid, cltv_final, dst_node, invoice,
+                 available_pixels):
         """
         Finds a valid onion to route to the destination node that fits as many
         pixels as possible with appropriate payment
@@ -35,6 +36,7 @@ class Onion:
         self.payment_secret = self.invoice['payment_secret']
         self.payment_hash = self.invoice['payment_hash']
         self.available_pixels = available_pixels
+        self.cltv_final = cltv_final
 
     def print_dict(self, info):
         pprint.pprint(info)
@@ -103,7 +105,7 @@ class Onion:
 
     def _rework_routing_fees(self, route, pay_dst, pay_msat):
         # Thanks to sendinvoiceless.py plugin for this logic!
-        delay = int(CLTV_FINAL)
+        delay = self.cltv_final + CLTV_FINAL_PAD
         msatoshi = Millisatoshi(SELF_PAYMENT)
         for r in reversed(route):
             r['msatoshi'] = msatoshi.millisatoshis

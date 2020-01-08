@@ -24,9 +24,17 @@ class Draw:
     def _get_myid(self):
         try:
             info = self.rpc.getinfo()
-            return info['id'], None
+            return info['id']
         except:
-            return None, "could not get myid"
+            return None
+
+    def _get_cltv_final(self):
+        try:
+            info = self.rpc.listconfigs()
+            print("cltv-final: %d" % info['cltv-final'])
+            return info['cltv-final']
+        except:
+            return None
 
     def _payment_status(self, payment_hash):
         try:
@@ -49,11 +57,12 @@ class Draw:
 
     ###########################################################################
 
-    def _draw_pixels(self, myid, pixels):
+    def _draw_pixels(self, myid, cltv_final, pixels):
         invoice, err = Invoice(self.rpc).create_invoice()
         if err:
             return None, err
-        onion_creator = Onion(self.rpc, myid, self.dst_node, invoice, pixels)
+        onion_creator = Onion(self.rpc, myid, cltv_final, self.dst_node,
+                              invoice, pixels)
         onion_result = onion_creator.fit_onion()
         if onion_result['status'] != "success":
             return None, onion_result['msg']
@@ -83,10 +92,10 @@ class Draw:
             time.sleep(WAIT_FOR_PAYMENT_PERIOD)
         return onion_result['fitted_pixels'], None
 
-    def _draw_loop(self, myid):
+    def _draw_loop(self, myid, cltv_final):
         pixels = self.pixels
         while True:
-            pixels_drawn, err = self._draw_pixels(myid, pixels)
+            pixels_drawn, err = self._draw_pixels(myid, cltv_final, pixels)
             if err:
                 return err
             if pixels_drawn:
@@ -103,12 +112,15 @@ class Draw:
     ###########################################################################
 
     def run(self):
-        myid, err = self._get_myid()
-        if err:
-            return self._get_report(), err
+        myid = self._get_myid()
+        if not myid:
+            return self._get_report(), "could not get myid"
         print("myid: %s" % (myid))
+        cltv_final = self._get_cltv_final()
+        if not cltv_final:
+            return self._get_report(), "could not get cltv_final"
         try:
-            err = self._draw_loop(myid)
+            err = self._draw_loop(myid, cltv_final)
             if err:
                 return self._get_report(), err
         except Exception as e:
