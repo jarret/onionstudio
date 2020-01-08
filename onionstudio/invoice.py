@@ -23,6 +23,8 @@ class Invoice:
             invoice = self.rpc.invoice(msatoshi, label, description)
             invoice['payment_secret'] = self._get_payment_secret(
                 invoice['bolt11'])
+            print("payment_secret: %s" % invoice['payment_secret'])
+            print("payment_hash: %s" % invoice['payment_hash'])
             return invoice, None
         except:
             return None, "could not create invoice"
