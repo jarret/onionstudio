@@ -101,6 +101,10 @@ report, err = settings.func(settings, rpc)
 if report:
     print("drew %d out of %d pixels" % (report['pixels_drawn'],
                                         report['total_pixels']))
+    if report['pixels_drawn'] != report['total_pixels']:
+        resume_from = settings.resume_at_px + report['pixels_drawn']
+        print("To attempt to resume the draw from wher it failed, call again "
+              "with  '--resume-at-px %d' at the end." % resume_from)
 if err:
     sys.exit(err)
 

@@ -127,11 +127,17 @@ def draw_png(plugin, x_offset, y_offset, png_filename, big="", resume_at_px=0):
     d = Draw(plugin.rpc, node, pixels)
     report, err = d.run()
     if report:
-        report = "drew %d out of %d pixels" % (report['pixels_drawn'],
-                                               report['total_pixels'])
+        report_str = "drew %d out of %d pixels" % (report['pixels_drawn'],
+                                                   report['total_pixels'])
+        if report['pixels_drawn'] != report['total_pixels']:
+            resume_from = report['pixels_drawn'] + resume_at_px
+            report_str += ("\nto attempt to resume this drawing where it left "
+                           "off, call again with '%d' at the end of the "
+                           "command as the 'resume_at_px' parameter" %
+                           resume_from)
     if err:
-        return err if not report else report + "\n" + err
-    return report
+        return err if not report else report_str + "\n" + err
+    return report_str
 
 ###############################################################################
 
