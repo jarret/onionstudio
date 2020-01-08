@@ -65,12 +65,12 @@ class Onion:
         est += 18 + 32
         # other hops
         est += (33 + 32) * (n_hops - 2)
-        return est + 10 # since this is a fudge overestimate a bit
+        return est + 30 # since this is a fudge overestimate a bit
 
     def _estimate_payload_pixels(self, n_hops):
         approx_bytes = ONION_SIZE - self._estimate_routing_bytes(n_hops)
         approx_pixels = math.floor(approx_bytes / PIXEL_BYTE_SIZE)
-        return approx_pixels - 3 # underestimate a bit
+        return approx_pixels - 10 # underestimate a bit
 
     ###########################################################################
 
