@@ -84,7 +84,7 @@ class Draw:
             if status == "complete":
                 break
             if status != "pending":
-                print("payment did not complete. Status: %s" % status)
+                return None, "payment did not complete. Status: %s" % status
             checks += 1
             if checks == WAIT_FOR_PAYMENT_CHECKS:
                 return None, "payment didn't complete"
