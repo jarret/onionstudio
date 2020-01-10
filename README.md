@@ -138,6 +138,26 @@ $ lightning-cli os_draw_png 300 400 /path/to/my/image.png
 If you have any trouble loading the plugin, please ensure the standalone script works first since it will give you easier-to-read error messages if there are any dependency problems.
 
 
+### What to expect when it runs.
+
+The scripts are assembling and sending some advanced payments via calls over the JSON-RPC interface into C-Lightning. The code logs information verbosely if you desire to follow along.
+
+The basic overview of the operation is:
+
+1. A BOL 11 invoice for 1 satoshis is created.
+2. A set of pixels is obtained to attempt to plot a route.
+3. A route to the destination (the official Onion Studio node) is plotted to carry a 1 satoshi routing fee for each pixel included in the bundle.
+4. A route is plotted from the destination back to your node to carry the 1 satoshi payment back.
+5. The routing payloads are constructed to fit into the onion packet with this route as well as the encoded pixels as extension TLV payloads.
+6. The size of the payloads is checked for whether it fits inside the hard limit of 1300 bytes for the onion packet.
+7. If it is too large, this estimation process is repeated with less pixels (and a corresponding smaller payment).
+8. The payment is sent
+9. Your node will wait for success of the self-payment of the 1 satoshi
+10. If successful, the operation will repeat to attempt to draw the next bundle of pixels in the sequence.
+
+If you are using an external wallet such as Spark to interface with C-Lightning, you will see many payments going by and perhaps many notifications of incoming payments of 1 satoshi each. These are the result of your node paying itself, wit h the 'real' payment being in the form of a routing fee, which may not show up in the accounting of your software.
+
+
 # Running My Own Onion Studio Server
 
 ### Running the ZeroMQ plugin
