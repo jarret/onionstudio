@@ -1,19 +1,7 @@
 ![Onion Studo Logo](frontend/htdocs/img/logo.png "Onion Studio Logo")
 
-# Onion Studio!
 
-An application of TLV extension data in onion packets for drawing art anonymously via the Lightning Network.
-
-https://onion.studio
-
-The node hosting this app is:
-
-```
-02e389d861acd9d6f5700c99c6c33dd4460d6f1e2f6ba89d1f4f36be85fc60f8d7@54.188.180.102:9735
-```
-
-New channels and rebalancing for incoming capacity appreciated!
-
+NOTICE - this app used to be running live at [https://onion.studio](https://onion.studio), but was turned off since it served its purpose and wasn't worth the hosting cost anymore, but this is still the full source code.
 
 # Drawing Pixels
 
